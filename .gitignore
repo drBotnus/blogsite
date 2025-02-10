@@ -22,3 +22,7 @@ target/
 # Added by cargo
 
 /target
+
+# fuck
+# forgot direnv
+.direnv/
