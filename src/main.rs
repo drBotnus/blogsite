@@ -11,7 +11,3 @@ async fn main() -> io::Result<()> {
 
     axum::serve(listener, router).await
 }
-
-async fn index() -> impl IntoResponse {
-    (StatusCode::OK, "Homepage")
-}

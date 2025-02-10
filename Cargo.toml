@@ -4,12 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-askama = "0.12.1"
 axum = "0.8.1"
-colored = "3.0.0"
-config = "0.15.7"
+chrono = { version = "0.4.39", features = ["serde"] }
 serde = { version = "1.0.217", features = ["derive"] }
 tokio = { version = "1.43.0", features = ["full"] }
+toml = "0.8.20"
+uuid = { version = "1.13.1", features = ["serde", "v4"] }
 
 [dev-dependencies]
 anyhow = "1"
