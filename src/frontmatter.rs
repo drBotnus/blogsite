@@ -1,13 +1,16 @@
+use std::{fmt::Display, fs, io};
+
 use chrono::{DateTime, Utc};
+use comrak::{markdown_to_html, ComrakOptions};
 use serde::{de::DeserializeOwned, Deserialize};
 
 #[derive(Deserialize, Clone, Debug, Default)]
 pub struct FrontMatter {
-    id: uuid::Uuid,
-    date: DateTime<Utc>,
-    draft: Option<bool>,
-    title: String,
-    description: String,
+    pub id: uuid::Uuid,
+    pub date: DateTime<Utc>,
+    pub draft: Option<bool>,
+    pub title: String,
+    pub description: String,
 }
 
 enum FrontmatterError {
@@ -35,7 +38,41 @@ impl FrontMatter {
         Ok(deserialize_frontmatter::<Self>(&file)?.0)
     }
 
-    fn get_content(&self) -> Result<String, FrontmatterError> {}
+    fn get_content(&self) -> Result<String, FrontmatterError> {
+        let md = read_post_to_string(&self.title).unwrap_or("Unable to load post.".to_string());
+        let content = deserialize_frontmatter::<Self>(&md)?.1;
+        Ok(markdown_to_html(&content, &ComrakOptions::default()))
+    }
+}
+
+impl Display for FrontMatter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let url = format!("https://mhbtech.dev/blog/{}", self.title);
+        let readable_title = self.title.replace("_", " ");
+        let content = self
+            .get_content()
+            .unwrap_or("Unable to load post".to_string());
+        write!(
+            f,
+            r#"
+            <entry>
+                <title>{}</title>
+                <description>{}</description>
+                <link rel="alternate" href="{}" type="text/html" title="{}"/>
+                <published>{}</published>
+                <id>{}</id>
+                <content type="html" xml:base="https://mhbtech.dev/blog/{}">{}</content>
+                <author>
+                <name>botnus</name>
+                </author>
+            </entry>"#,
+            readable_title, self.description, url, self.title, self.date, url, self.title, content
+        )
+    }
+}
+
+pub fn read_post_to_string(post_name: &str) -> Result<String, io::Error> {
+    fs::read_to_string(format!("content/blog/{post_name}.md"))
 }
 
 pub fn deserialize_frontmatter<T: DeserializeOwned>(
